@@ -47,7 +47,8 @@ if not st.session_state.autenticado:
         if clave == PASSWORD_GLOBAL:
             st.session_state.autenticado = True
             st.success("✅ Acceso concedido. Bienvenido al sistema.")
-            st.experimental_rerun()
+            st.rerun()
+
         else:
             st.error("❌ Contraseña incorrecta.")
 
@@ -123,4 +124,4 @@ if st.session_state.autenticado:
     elif opcion == "🚪 Cerrar sesión":
         st.session_state.autenticado = False
         st.success("Sesión cerrada correctamente.")
-        st.experimental_rerun()
+        st.rerun()
