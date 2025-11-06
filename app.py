@@ -174,7 +174,7 @@ st.sidebar.image("Logotipo Himax COLOR.png", width=180)
 st.sidebar.title("Menú")
 opcion = st.sidebar.radio(
     "Selecciona una opción:",
-    ["Lista de pendientes", "Agregar pendiente", "Dashboard"]
+    ["Lista de pendientes", "Agregar pendiente", "Dashboard", "Eliminar de pendientes"]
 )
 
 # === FUNCIONES ===
@@ -349,5 +349,107 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
+# === ELIMINAR O EDITAR PENDIENTES ===
+elif opcion == "Eliminar de pendientes":
+    st.title("🗑️ Eliminar o Editar Pendientes Existentes")
+
+    # Cargar datos
+    df = obtener_pendientes()
+
+    if df.empty:
+        st.info("No hay pendientes registrados aún.")
+        st.stop()
+
+    # Filtros de búsqueda
+    st.subheader("🔍 Buscar pendiente")
+    col1, col2 = st.columns(2)
+    with col1:
+        filtro_empresa = st.text_input("Buscar por empresa")
+    with col2:
+        filtro_producto = st.text_input("Buscar por producto")
+
+    df_filtrado = df.copy()
+    if filtro_empresa:
+        df_filtrado = df_filtrado[df_filtrado["empresa"].str.contains(filtro_empresa, case=False, na=False)]
+    if filtro_producto:
+        df_filtrado = df_filtrado[df_filtrado["producto"].str.contains(filtro_producto, case=False, na=False)]
+
+    st.write("### Resultados de búsqueda")
+    if df_filtrado.empty:
+        st.warning("No se encontraron resultados.")
+        st.stop()
+
+    # Mostrar resultados
+    st.dataframe(df_filtrado, use_container_width=True)
+
+    # Seleccionar un pendiente
+    ids = df_filtrado["id"].tolist()
+    id_sel = st.selectbox("Selecciona el ID del pendiente a editar o eliminar:", ids)
+
+    pendiente_sel = df[df["id"] == id_sel].iloc[0]
+
+    st.subheader(f"✏️ Editar pendiente ID {id_sel}")
+
+    with st.form("form_editar"):
+        empresa = st.text_input("Empresa", pendiente_sel["empresa"])
+        rut_empresa = st.text_input("RUT Empresa", pendiente_sel.get("rut_empresa", ""))
+        fecha_nota_venta = st.date_input("Fecha Nota Venta", pendiente_sel.get("fecha_nota_venta"))
+        n_nota_venta = st.text_input("N° Nota de Venta", pendiente_sel.get("n_nota_venta", ""))
+        tipo_facturacion = st.selectbox(
+            "Tipo de Facturación",
+            ["Parcializada c/ constancia", "Completa"],
+            index=0 if pendiente_sel.get("tipo_facturacion") == "Parcializada c/ constancia" else 1
+        )
+        orden_compra = st.text_input("Número de Orden de Compra", pendiente_sel.get("orden_compra", ""))
+        producto = st.text_input("Producto", pendiente_sel["producto"])
+        sku = st.text_input("Código SKU", pendiente_sel.get("sku", ""))
+        cantidad = st.number_input("Cantidad", min_value=1, step=1, value=int(pendiente_sel["cantidad"]))
+        proveedor = st.text_input("Proveedor", pendiente_sel.get("proveedor", ""))
+        estado = st.selectbox("Estado", ["Pendiente", "Completado"], index=0 if pendiente_sel["estado"] == "Pendiente" else 1)
+        motivo = st.text_area("Motivo o comentario", pendiente_sel.get("motivo", ""))
+        vendedor = st.text_input("Vendedor", pendiente_sel.get("vendedor", ""))
+
+        col1, col2 = st.columns(2)
+        with col1:
+            guardar = st.form_submit_button("💾 Guardar cambios")
+        with col2:
+            eliminar = st.form_submit_button("🗑️ Eliminar pendiente")
+
+        if guardar:
+            with engine.begin() as conn:
+                conn.execute(text("""
+                    UPDATE pendientes
+                    SET empresa=:empresa, rut_empresa=:rut_empresa, fecha_nota_venta=:fecha_nota_venta,
+                        n_nota_venta=:n_nota_venta, tipo_facturacion=:tipo_facturacion, orden_compra=:orden_compra,
+                        producto=:producto, sku=:sku, cantidad=:cantidad, proveedor=:proveedor,
+                        estado=:estado, motivo=:motivo, vendedor=:vendedor
+                    WHERE id=:id
+                """), {
+                    "id": id_sel,
+                    "empresa": empresa,
+                    "rut_empresa": rut_empresa,
+                    "fecha_nota_venta": fecha_nota_venta,
+                    "n_nota_venta": n_nota_venta,
+                    "tipo_facturacion": tipo_facturacion,
+                    "orden_compra": orden_compra,
+                    "producto": producto,
+                    "sku": sku,
+                    "cantidad": cantidad,
+                    "proveedor": proveedor,
+                    "estado": estado,
+                    "motivo": motivo,
+                    "vendedor": vendedor
+                })
+            st.success("✅ Pendiente actualizado correctamente.")
+            st.rerun()
+
+        if eliminar:
+            with engine.begin() as conn:
+                conn.execute(text("DELETE FROM pendientes WHERE id=:id"), {"id": id_sel})
+            st.success("🗑️ Pendiente eliminado exitosamente.")
+            st.rerun()
+
+
 
 
