@@ -130,6 +130,7 @@ if st.session_state.autenticado:
 
             # Gráfico de barras por producto
             st.write("### Cantidad de productos pendientes")
+            import plotly.express as px
             fig = px.bar(
                 tabla,
                 x="producto",
@@ -151,5 +152,6 @@ if st.session_state.autenticado:
         st.session_state.autenticado = False
         st.success("Sesión cerrada correctamente.")
         st.rerun()
+
 
 
