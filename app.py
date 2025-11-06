@@ -52,33 +52,75 @@ st.title("📦 Sistema de Gestión de Pendientes")
 if "usuario" not in st.session_state:
     st.session_state.usuario = None
 
-# LOGIN / REGISTRO
-if not st.session_state.usuario:
-    tab_login, tab_registro = st.tabs(["🔐 Iniciar Sesión", "🧾 Registrarse"])
+# -----------------------------------------------------
+# LOGIN SIMPLE CON UNA SOLA CONTRASEÑA GLOBAL
+# -----------------------------------------------------
 
-    with tab_login:
-        correo = st.text_input("Correo")
-        contrasena = st.text_input("Contraseña", type="password")
-        if st.button("Entrar"):
-            user = verificar_usuario(correo, contrasena)
-            if user:
-                st.session_state.usuario = user
-                st.success(f"Bienvenido, {user['nombre']} 👋")
-                st.experimental_rerun()
-            else:
-                st.error("Correo o contraseña incorrectos.")
+# Cambia esta contraseña por la que tú quieras:
+PASSWORD_GLOBAL = "Familia2025"
 
-    with tab_registro:
-        nombre = st.text_input("Nombre completo")
-        correo_r = st.text_input("Correo nuevo")
-        contrasena_r = st.text_input("Contraseña nueva", type="password")
-        if st.button("Registrar"):
-            if nombre and correo_r and contrasena_r:
-                crear_usuario(nombre, correo_r, contrasena_r)
-                st.success("Usuario registrado correctamente ✅")
-            else:
-                st.warning("Por favor completa todos los campos.")
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+if not st.session_state.autenticado:
+    st.title("🔒 Acceso Restringido")
+    clave = st.text_input("Ingresa la contraseña:", type="password")
+    if st.button("Entrar"):
+        if clave == PASSWORD_GLOBAL:
+            st.session_state.autenticado = True
+            st.success("✅ Acceso concedido. Bienvenido al sistema.")
+            st.experimental_rerun()
+        else:
+            st.error("❌ Contraseña incorrecta.")
 else:
+    # Mostrar la app completa
+    st.sidebar.success("🔐 Acceso autorizado")
+    opcion = st.sidebar.selectbox("Menú", ["📋 Pendientes", "📊 Dashboard", "🚪 Cerrar sesión"])
+
+    if opcion == "📋 Pendientes":
+        st.subheader("Agregar nuevo pendiente")
+        with st.form("nuevo_pendiente"):
+            empresa = st.text_input("Empresa")
+            producto = st.text_input("Producto")
+            cantidad = st.number_input("Cantidad", min_value=1, step=1)
+            proveedor = st.text_input("Proveedor")
+            motivo = st.text_area("Motivo o comentario")
+            if st.form_submit_button("Guardar"):
+                agregar_pendiente({
+                    "empresa": empresa,
+                    "producto": producto,
+                    "cantidad": cantidad,
+                    "proveedor": proveedor,
+                    "estado": "Pendiente",
+                    "motivo": motivo,
+                    "vendedor": "Usuario General"
+                })
+                st.success("Pendiente guardado correctamente ✅")
+
+        st.subheader("Lista de pendientes actuales")
+        df = obtener_pendientes()
+        if df.empty:
+            st.info("No hay pendientes registrados aún.")
+        else:
+            st.dataframe(df)
+
+    elif opcion == "📊 Dashboard":
+        df = obtener_pendientes()
+        if df.empty:
+            st.info("Aún no hay datos para mostrar.")
+        else:
+            col1, col2 = st.columns(2)
+            with col1:
+                fig = px.bar(df.groupby("proveedor")["cantidad"].sum().reset_index(),
+                             x="proveedor", y="cantidad", title="Cantidad pendiente por proveedor")
+                st.plotly_chart(fig, use_container_width=True)
+            with col2:
+                fig2 = px.pie(df, names="estado", title="Distribución por estado")
+                st.plotly_chart(fig2, use_container_width=True)
+
+    elif opcion == "🚪 Cerrar sesión":
+        st.session_state.autenticado = False
+        st.experimental_rerun()else:
     user = st.session_state.usuario
     st.sidebar.success(f"Conectado como: {user['nombre']} ({user['rol']})")
     opcion = st.sidebar.selectbox("Menú", ["📋 Pendientes", "📊 Dashboard", "🚪 Cerrar sesión"])
