@@ -123,6 +123,27 @@ st.markdown(
     .js-plotly-plot .plotly {{
         background-color: {HIMAX_WHITE} !important;
     }}
+
+    /* Asegurar que TODOS los dataframes (incluidos los del dashboard) sean blancos */
+div[data-testid="stTable"] table {
+    background-color: white !important;
+    color: #222 !important;
+    border-collapse: collapse !important;
+}
+
+div[data-testid="stTable"] th {
+    background-color: #f4f6f9 !important;
+    color: #003366 !important;
+    font-weight: bold !important;
+    border-bottom: 1px solid #ccc !important;
+}
+
+div[data-testid="stTable"] td {
+    background-color: white !important;
+    color: #222 !important;
+    border-top: 1px solid #eee !important;
+}
+
     </style>
     """,
     unsafe_allow_html=True
@@ -265,3 +286,4 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
