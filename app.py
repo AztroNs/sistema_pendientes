@@ -22,7 +22,8 @@ HIMAX_TEXT = "#222222"
 # === ESTILO PERSONALIZADO ===
 st.markdown(
     f"""
-    /* Arreglar menú desplegable (selectbox) oscuro */
+    <style>
+        /* Arreglar menú desplegable (selectbox) oscuro */
 div[data-baseweb="popover"] {
     background-color: white !important;
     color: #222 !important;
@@ -43,7 +44,7 @@ div[data-baseweb="option"]:hover {
     background-color: #E6F0FA !important;  /* tono celeste Himax */
     color: #003366 !important;
 }
-    <style>
+
     /* Fondo general */
     .stApp {{
         background-color: {HIMAX_LIGHT};
@@ -267,4 +268,5 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
 
