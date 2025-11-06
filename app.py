@@ -23,28 +23,6 @@ HIMAX_TEXT = "#222222"
 st.markdown(
     f"""
     <style>
-        /* Arreglar menú desplegable (selectbox) oscuro */
-div[data-baseweb="popover"] {
-    background-color: white !important;
-    color: #222 !important;
-    border: 1px solid #ccc !important;
-}
-
-div[data-baseweb="popover"] div {
-    background-color: white !important;
-    color: #222 !important;
-}
-
-div[data-baseweb="option"] {
-    background-color: white !important;
-    color: #222 !important;
-}
-
-div[data-baseweb="option"]:hover {
-    background-color: #E6F0FA !important;  /* tono celeste Himax */
-    color: #003366 !important;
-}
-
     /* Fondo general */
     .stApp {{
         background-color: {HIMAX_LIGHT};
@@ -126,6 +104,29 @@ div[data-baseweb="option"]:hover {
     .js-plotly-plot .plotly {{
         background-color: {HIMAX_WHITE} !important;
     }}
+
+    /* Arreglar menú desplegable (selectbox) oscuro */
+div[data-baseweb="popover"] {
+    background-color: white !important;
+    color: #222 !important;
+    border: 1px solid #ccc !important;
+}
+
+div[data-baseweb="popover"] div {
+    background-color: white !important;
+    color: #222 !important;
+}
+
+div[data-baseweb="option"] {
+    background-color: white !important;
+    color: #222 !important;
+}
+
+div[data-baseweb="option"]:hover {
+    background-color: #E6F0FA !important;  /* tono celeste Himax */
+    color: #003366 !important;
+}
+
     </style>
     """,
     unsafe_allow_html=True
@@ -268,5 +269,6 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
 
 
