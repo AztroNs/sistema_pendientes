@@ -1,104 +1,90 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 from sqlalchemy import create_engine, text
-from datetime import datetime
+import plotly.express as px
 
-# -----------------------------------------------------
-# CONFIGURACIÓN INICIAL
-# -----------------------------------------------------
-st.set_page_config(page_title="Gestor de Pendientes", layout="wide")
+# 🔐 Contraseña única para ingresar
+APP_PASSWORD = "Familia2025"
 
-# Conexión a la base de datos (debe estar configurada en Streamlit Secrets)
-DB_URL = st.secrets.get("DB_URL", "")
-if not DB_URL:
-    st.error("❌ No se encontró la conexión a la base de datos. Configura DB_URL en Streamlit Secrets.")
+# 🌐 Conexión a la base de datos Neon.tech
+DB_URL = "postgresql+psycopg2://neondb_owner:npg_XU4IAbaent7p@ep-twilight-credit-acc6aiu0-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 engine = create_engine(DB_URL)
 
-# -----------------------------------------------------
-# FUNCIONES DE BASE DE DATOS
-# -----------------------------------------------------
-def agregar_pendiente(data):
-    """Inserta un nuevo pendiente en la base de datos"""
-    with engine.begin() as conn:
-        conn.execute(text("""
-            INSERT INTO pendientes (empresa, producto, cantidad, proveedor, estado, motivo, vendedor)
-            VALUES (:empresa, :producto, :cantidad, :proveedor, :estado, :motivo, :vendedor)
-        """), data)
+# --- Login simple ---
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-def obtener_pendientes():
-    """Obtiene todos los pendientes"""
-    with engine.begin() as conn:
-        result = conn.execute(text("SELECT * FROM pendientes ORDER BY fecha_creacion DESC"))
-        return pd.DataFrame(result.fetchall(), columns=result.keys())
-
-# -----------------------------------------------------
-# LOGIN CON UNA SOLA CONTRASEÑA GLOBAL
-# -----------------------------------------------------
-PASSWORD_GLOBAL = "Himax"  # 🔒 Cambia esta contraseña a la que quieras
-
-if "autenticado" not in st.session_state:
-    st.session_state.autenticado = False
-
-if not st.session_state.autenticado:
-    st.title("🔒 Acceso Restringido")
-    clave = st.text_input("Ingresa la contraseña:", type="password")
+if not st.session_state.authenticated:
+    st.title("🔒 Acceso al Sistema de Pendientes")
+    password = st.text_input("Contraseña:", type="password")
     if st.button("Entrar"):
-        if clave == PASSWORD_GLOBAL:
-            st.session_state.autenticado = True
+        if password == APP_PASSWORD:
+            st.session_state.authenticated = True
             st.success("✅ Acceso concedido. Bienvenido al sistema.")
             st.rerun()
-
         else:
             st.error("❌ Contraseña incorrecta.")
+    st.stop()
 
-# -----------------------------------------------------
-# INTERFAZ PRINCIPAL (solo si el usuario está autenticado)
-# -----------------------------------------------------
-if st.session_state.autenticado:
-    st.sidebar.success("🔐 Acceso autorizado")
-    opcion = st.sidebar.selectbox("Menú", ["📋 Pendientes", "📊 Dashboard", "🚪 Cerrar sesión"])
+# --- Menú lateral ---
+st.sidebar.title("Menú")
+opcion = st.sidebar.radio(
+    "Selecciona una opción:",
+    ["Lista de pendientes", "Agregar pendiente", "Dashboard"]
+)
 
-    # -------------------------------
-    # SECCIÓN: AGREGAR / VER PENDIENTES
-    # -------------------------------
-    if opcion == "📋 Pendientes":
-        st.header("📋 Gestión de Pendientes")
+# --- Función para obtener datos ---
+def obtener_pendientes():
+    with engine.begin() as conn:
+        result = conn.execute(text("SELECT * FROM pendientes ORDER BY fecha_creacion DESC"))
+        df = pd.DataFrame(result.fetchall(), columns=result.keys())
+    return df
 
-        st.subheader("Agregar nuevo pendiente")
-        with st.form("nuevo_pendiente"):
-            empresa = st.text_input("Empresa")
-            producto = st.text_input("Producto")
-            cantidad = st.number_input("Cantidad", min_value=1, step=1)
-            proveedor = st.text_input("Proveedor")
-            motivo = st.text_area("Motivo o comentario")
+# --- Lista de pendientes ---
+if opcion == "Lista de pendientes":
+    st.title("📋 Lista de pendientes actuales")
 
-            if st.form_submit_button("Guardar"):
-                if empresa and producto:
-                    agregar_pendiente({
-                        "empresa": empresa,
-                        "producto": producto,
-                        "cantidad": cantidad,
-                        "proveedor": proveedor,
-                        "estado": "Pendiente",
-                        "motivo": motivo,
-                        "vendedor": "Usuario General"
-                    })
-                    st.success("✅ Pendiente guardado correctamente.")
-                else:
-                    st.warning("Por favor completa al menos Empresa y Producto.")
+    df = obtener_pendientes()
+    if df.empty:
+        st.info("No hay pendientes registrados aún.")
+    else:
+        st.dataframe(df, use_container_width=True)
 
-        st.subheader("Lista de pendientes actuales")
-        df = obtener_pendientes()
-        if df.empty:
-            st.info("No hay pendientes registrados aún.")
-        else:
-            st.dataframe(df, use_container_width=True)
+# --- Agregar pendiente ---
+elif opcion == "Agregar pendiente":
+    st.title("➕ Agregar nuevo pendiente")
 
-    # -------------------------------
-    # SECCIÓN: DASHBOARD
-    # -------------------------------
-    elif opcion == "Dashboard":
+    with st.form("form_pendiente"):
+        empresa = st.text_input("Empresa (cliente)")
+        producto = st.text_input("Producto")
+        sku = st.text_input("Código SKU (opcional)")
+        cantidad = st.number_input("Cantidad", min_value=1, step=1)
+        proveedor = st.text_input("Proveedor")
+        estado = st.selectbox("Estado", ["Pendiente", "En Proceso", "Completado"])
+        motivo = st.text_area("Motivo o comentario")
+        vendedor = st.text_input("Vendedor")
+
+        enviado = st.form_submit_button("Guardar")
+
+        if enviado:
+            with engine.begin() as conn:
+                conn.execute(text("""
+                    INSERT INTO pendientes (empresa, producto, cantidad, proveedor, estado, motivo, vendedor, sku)
+                    VALUES (:empresa, :producto, :cantidad, :proveedor, :estado, :motivo, :vendedor, :sku)
+                """), {
+                    "empresa": empresa,
+                    "producto": producto,
+                    "cantidad": cantidad,
+                    "proveedor": proveedor,
+                    "estado": estado,
+                    "motivo": motivo,
+                    "vendedor": vendedor,
+                    "sku": sku
+                })
+            st.success("✅ Pendiente agregado exitosamente.")
+
+# --- Dashboard ---
+elif opcion == "Dashboard":
     st.title("📊 Dashboard de Productos Pendientes")
 
     with engine.begin() as conn:
@@ -107,14 +93,13 @@ if st.session_state.autenticado:
     if df.empty:
         st.info("No hay datos registrados todavía.")
     else:
-        st.subheader("Resumen general")
+        st.subheader("📦 Resumen general por proveedor")
 
-        # Resumen total por proveedor
         resumen_proveedor = df.groupby("proveedor")["cantidad"].sum().reset_index()
         st.bar_chart(resumen_proveedor.set_index("proveedor"))
 
         st.divider()
-        st.subheader("Detalle por empresa")
+        st.subheader("🏢 Detalle por empresa")
 
         empresas = sorted(df["empresa"].dropna().unique())
         empresa_sel = st.selectbox("Selecciona una empresa", empresas)
@@ -124,13 +109,10 @@ if st.session_state.autenticado:
         if not df_empresa.empty:
             st.write("### Productos pendientes para:", empresa_sel)
 
-            # Tabla resumen
             tabla = df_empresa.groupby(["producto", "sku", "proveedor"])["cantidad"].sum().reset_index()
             st.dataframe(tabla, use_container_width=True)
 
-            # Gráfico de barras por producto
             st.write("### Cantidad de productos pendientes")
-            import plotly.express as px
             fig = px.bar(
                 tabla,
                 x="producto",
@@ -143,15 +125,4 @@ if st.session_state.autenticado:
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
-
-
-    # -------------------------------
-    # SECCIÓN: CERRAR SESIÓN
-    # -------------------------------
-    elif opcion == "🚪 Cerrar sesión":
-        st.session_state.autenticado = False
-        st.success("Sesión cerrada correctamente.")
-        st.rerun()
-
-
 
