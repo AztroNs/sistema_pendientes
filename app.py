@@ -98,25 +98,51 @@ if st.session_state.autenticado:
     # -------------------------------
     # SECCIÓN: DASHBOARD
     # -------------------------------
-    elif opcion == "📊 Dashboard":
-        st.header("📊 Dashboard de Pendientes")
-        df = obtener_pendientes()
-        if df.empty:
-            st.info("Aún no hay datos para mostrar.")
+    elif opcion == "Dashboard":
+    st.title("📊 Dashboard de Productos Pendientes")
+
+    with engine.begin() as conn:
+        df = pd.read_sql("SELECT * FROM pendientes", conn)
+
+    if df.empty:
+        st.info("No hay datos registrados todavía.")
+    else:
+        st.subheader("Resumen general")
+
+        # Resumen total por proveedor
+        resumen_proveedor = df.groupby("proveedor")["cantidad"].sum().reset_index()
+        st.bar_chart(resumen_proveedor.set_index("proveedor"))
+
+        st.divider()
+        st.subheader("Detalle por empresa")
+
+        empresas = sorted(df["empresa"].dropna().unique())
+        empresa_sel = st.selectbox("Selecciona una empresa", empresas)
+
+        df_empresa = df[df["empresa"] == empresa_sel]
+
+        if not df_empresa.empty:
+            st.write("### Productos pendientes para:", empresa_sel)
+
+            # Tabla resumen
+            tabla = df_empresa.groupby(["producto", "sku", "proveedor"])["cantidad"].sum().reset_index()
+            st.dataframe(tabla, use_container_width=True)
+
+            # Gráfico de barras por producto
+            st.write("### Cantidad de productos pendientes")
+            fig = px.bar(
+                tabla,
+                x="producto",
+                y="cantidad",
+                color="proveedor",
+                text="cantidad",
+                title=f"Pendientes por producto - {empresa_sel}",
+                labels={"cantidad": "Unidades", "producto": "Producto"},
+            )
+            st.plotly_chart(fig, use_container_width=True)
         else:
-            col1, col2 = st.columns(2)
+            st.warning("Esta empresa no tiene productos pendientes.")
 
-            with col1:
-                fig1 = px.bar(
-                    df.groupby("proveedor")["cantidad"].sum().reset_index(),
-                    x="proveedor", y="cantidad",
-                    title="Cantidad pendiente por proveedor"
-                )
-                st.plotly_chart(fig1, use_container_width=True)
-
-            with col2:
-                fig2 = px.pie(df, names="estado", title="Distribución por estado")
-                st.plotly_chart(fig2, use_container_width=True)
 
     # -------------------------------
     # SECCIÓN: CERRAR SESIÓN
@@ -125,4 +151,5 @@ if st.session_state.autenticado:
         st.session_state.autenticado = False
         st.success("Sesión cerrada correctamente.")
         st.rerun()
+
 
