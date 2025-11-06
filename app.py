@@ -192,7 +192,48 @@ if opcion == "Lista de pendientes":
     if df.empty:
         st.info("No hay pendientes registrados aún.")
     else:
+        # Reordenamos columnas y renombramos para mostrar en orden lógico
+        columnas_mostrar = [
+            "empresa",
+            "rut_empresa",
+            "producto",
+            "sku",
+            "cantidad",
+            "proveedor",
+            "tipo_facturacion",
+            "orden_compra",
+            "fecha_nota_venta",
+            "n_nota_venta",
+            "estado",
+            "motivo",
+            "vendedor",
+            "fecha_creacion"
+        ]
+
+        # Filtra columnas que existan (por compatibilidad con datos antiguos)
+        columnas_existentes = [c for c in columnas_mostrar if c in df.columns]
+        df = df[columnas_existentes]
+
+        # Renombra columnas para visualización
+        df = df.rename(columns={
+            "empresa": "Empresa",
+            "rut_empresa": "RUT Empresa",
+            "producto": "Producto",
+            "sku": "SKU",
+            "cantidad": "Cantidad",
+            "proveedor": "Proveedor",
+            "tipo_facturacion": "Tipo de Facturación",
+            "orden_compra": "Orden de Compra",
+            "fecha_nota_venta": "Fecha Nota Venta",
+            "n_nota_venta": "N° Nota Venta",
+            "estado": "Estado",
+            "motivo": "Motivo o Comentario",
+            "vendedor": "Vendedor",
+            "fecha_creacion": "Fecha Creación"
+        })
+
         st.dataframe(df, use_container_width=True, hide_index=True)
+
 
 # === AGREGAR PENDIENTE ===
 elif opcion == "Agregar pendiente":
@@ -308,4 +349,5 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
 
