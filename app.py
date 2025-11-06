@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text
 import plotly.express as px
 
 # 🔐 Contraseña única para ingresar
-APP_PASSWORD = "Familia2025"
+APP_PASSWORD = "Himax"
 
 # 🌐 Conexión a la base de datos Neon.tech
 DB_URL = "postgresql+psycopg2://neondb_owner:npg_XU4IAbaent7p@ep-twilight-credit-acc6aiu0-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
@@ -125,4 +125,5 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
 
