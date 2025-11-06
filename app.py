@@ -445,10 +445,19 @@ elif opcion == "Eliminar de pendientes":
             st.rerun()
 
         if eliminar:
-            with engine.begin() as conn:
-                conn.execute(text("DELETE FROM pendientes WHERE id=:id"), {"id": id_sel})
-            st.success("🗑️ Pendiente eliminado exitosamente.")
-            st.rerun()
+            # Confirmación antes de eliminar
+            st.warning(f"⚠️ Estás a punto de eliminar el pendiente ID {id_sel} de la empresa '{pendiente_sel['empresa']}'")
+            confirmar = st.checkbox("Confirmo que deseo eliminar este pendiente definitivamente")
+
+            if confirmar:
+                with engine.begin() as conn:
+                    conn.execute(text("DELETE FROM pendientes WHERE id=:id"), {"id": id_sel})
+                st.success("🗑️ Pendiente eliminado exitosamente.")
+                st.rerun()
+            else:
+                st.info("El pendiente no ha sido eliminado. Marca la casilla para confirmar.")
+
+
 
 
 
