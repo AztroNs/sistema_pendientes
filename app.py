@@ -3,18 +3,57 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 import plotly.express as px
 
-# 🔐 Contraseña única para ingresar
-APP_PASSWORD = "Himax"
+# === CONFIGURACIÓN GENERAL ===
+st.set_page_config(
+    page_title="Sistema de Pendientes - Himax",
+    page_icon="💧",
+    layout="wide",  # 🔹 Amplía el contenido
+    initial_sidebar_state="expanded"
+)
 
-# 🌐 Conexión a la base de datos Neon.tech
+# === COLORES CORPORATIVOS HIMAX ===
+HIMAX_PRIMARY = "#007BFF"      # Azul principal
+HIMAX_DARK = "#003366"         # Azul oscuro
+HIMAX_LIGHT = "#E6F0FA"        # Fondo claro
+HIMAX_ACCENT = "#00AEEF"       # Celeste vibrante
+
+# === ESTILO PERSONALIZADO ===
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-color: {HIMAX_LIGHT};
+    }}
+    h1, h2, h3, h4, h5, h6 {{
+        color: {HIMAX_DARK} !important;
+        font-family: 'Segoe UI', sans-serif;
+    }}
+    .stButton>button {{
+        background-color: {HIMAX_PRIMARY};
+        color: white;
+        border-radius: 6px;
+        height: 2.5em;
+        font-weight: bold;
+    }}
+    .stButton>button:hover {{
+        background-color: {HIMAX_ACCENT};
+        color: white;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# === LOGIN SIMPLE ===
+APP_PASSWORD = "Himax"
 DB_URL = "postgresql+psycopg2://neondb_owner:npg_XU4IAbaent7p@ep-twilight-credit-acc6aiu0-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 engine = create_engine(DB_URL)
 
-# --- Login simple ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
+    st.image("Logotipo Himax COLOR.png", width=220)
     st.title("🔒 Acceso al Sistema de Pendientes")
     password = st.text_input("Contraseña:", type="password")
     if st.button("Entrar"):
@@ -26,31 +65,32 @@ if not st.session_state.authenticated:
             st.error("❌ Contraseña incorrecta.")
     st.stop()
 
-# --- Menú lateral ---
+# === MENÚ LATERAL ===
+st.sidebar.image("Logotipo Himax COLOR.png", width=180)
 st.sidebar.title("Menú")
 opcion = st.sidebar.radio(
     "Selecciona una opción:",
     ["Lista de pendientes", "Agregar pendiente", "Dashboard"]
 )
 
-# --- Función para obtener datos ---
+# === FUNCIONES ===
 def obtener_pendientes():
     with engine.begin() as conn:
         result = conn.execute(text("SELECT * FROM pendientes ORDER BY fecha_creacion DESC"))
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
     return df
 
-# --- Lista de pendientes ---
+# === LISTA DE PENDIENTES ===
 if opcion == "Lista de pendientes":
     st.title("📋 Lista de pendientes actuales")
-
     df = obtener_pendientes()
+
     if df.empty:
         st.info("No hay pendientes registrados aún.")
     else:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
-# --- Agregar pendiente ---
+# === AGREGAR PENDIENTE ===
 elif opcion == "Agregar pendiente":
     st.title("➕ Agregar nuevo pendiente")
 
@@ -60,7 +100,7 @@ elif opcion == "Agregar pendiente":
         sku = st.text_input("Código SKU (opcional)")
         cantidad = st.number_input("Cantidad", min_value=1, step=1)
         proveedor = st.text_input("Proveedor")
-        estado = st.selectbox("Estado", ["Pendiente", "En Proceso", "Completado"])
+        estado = "Pendiente"  # 🔹 Fijo
         motivo = st.text_area("Motivo o comentario")
         vendedor = st.text_input("Vendedor")
 
@@ -83,7 +123,7 @@ elif opcion == "Agregar pendiente":
                 })
             st.success("✅ Pendiente agregado exitosamente.")
 
-# --- Dashboard ---
+# === DASHBOARD ===
 elif opcion == "Dashboard":
     st.title("📊 Dashboard de Productos Pendientes")
 
@@ -96,7 +136,15 @@ elif opcion == "Dashboard":
         st.subheader("📦 Resumen general por proveedor")
 
         resumen_proveedor = df.groupby("proveedor")["cantidad"].sum().reset_index()
-        st.bar_chart(resumen_proveedor.set_index("proveedor"))
+        fig1 = px.bar(
+            resumen_proveedor,
+            x="proveedor",
+            y="cantidad",
+            text="cantidad",
+            title="Cantidad total de productos pendientes por proveedor",
+            color_discrete_sequence=[HIMAX_PRIMARY]
+        )
+        st.plotly_chart(fig1, use_container_width=True)
 
         st.divider()
         st.subheader("🏢 Detalle por empresa")
@@ -112,18 +160,15 @@ elif opcion == "Dashboard":
             tabla = df_empresa.groupby(["producto", "sku", "proveedor"])["cantidad"].sum().reset_index()
             st.dataframe(tabla, use_container_width=True)
 
-            st.write("### Cantidad de productos pendientes")
-            fig = px.bar(
+            fig2 = px.bar(
                 tabla,
                 x="producto",
                 y="cantidad",
                 color="proveedor",
                 text="cantidad",
                 title=f"Pendientes por producto - {empresa_sel}",
-                labels={"cantidad": "Unidades", "producto": "Producto"},
+                color_discrete_sequence=[HIMAX_PRIMARY, HIMAX_ACCENT, HIMAX_DARK]
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
-
-
