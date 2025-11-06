@@ -12,17 +12,18 @@ st.set_page_config(
 )
 
 # === COLORES CORPORATIVOS HIMAX ===
-HIMAX_PRIMARY = "#007BFF"      # Azul principal
-HIMAX_DARK = "#003366"         # Azul oscuro
-HIMAX_LIGHT = "#E6F0FA"        # Fondo claro
-HIMAX_ACCENT = "#00AEEF"       # Celeste vibrante
-HIMAX_GRAY = "#333333"         # Texto general oscuro
+HIMAX_PRIMARY = "#007BFF"
+HIMAX_DARK = "#003366"
+HIMAX_LIGHT = "#E6F0FA"
+HIMAX_ACCENT = "#00AEEF"
+HIMAX_WHITE = "#FFFFFF"
+HIMAX_TEXT = "#222222"
 
 # === ESTILO PERSONALIZADO ===
 st.markdown(
     f"""
     <style>
-    /* Fondo principal */
+    /* Fondo general */
     .stApp {{
         background-color: {HIMAX_LIGHT};
     }}
@@ -35,23 +36,21 @@ st.markdown(
 
     /* Texto general */
     p, span, div {{
-        color: {HIMAX_GRAY} !important;
+        color: {HIMAX_TEXT} !important;
         font-family: 'Segoe UI', sans-serif;
     }}
 
-    /* Campos de texto */
+    /* Formularios */
     input, textarea, select {{
-        color: {HIMAX_DARK} !important;
-        background-color: white !important;
+        color: {HIMAX_TEXT} !important;
+        background-color: {HIMAX_WHITE} !important;
         border-radius: 6px !important;
-        border: 1px solid #CCCCCC !important;
+        border: 1px solid #CCC !important;
     }}
+
+    /* Placeholders */
     input::placeholder, textarea::placeholder {{
         color: #777 !important;
-    }}
-    .stTextInput>div>div>input, .stNumberInput input, .stTextArea textarea {{
-        color: {HIMAX_DARK} !important;
-        background-color: white !important;
     }}
 
     /* Botones */
@@ -70,15 +69,36 @@ st.markdown(
 
     /* Sidebar */
     section[data-testid="stSidebar"] {{
-        background-color: white;
+        background-color: {HIMAX_WHITE};
         border-right: 2px solid {HIMAX_ACCENT};
     }}
-    section[data-testid="stSidebar"] p, 
-    section[data-testid="stSidebar"] label, 
-    section[data-testid="stSidebar"] div, 
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] div,
     section[data-testid="stSidebar"] span {{
         color: {HIMAX_DARK} !important;
         font-weight: 500;
+    }}
+
+    /* DataFrame (fondo blanco y texto oscuro) */
+    .stDataFrame div[data-testid="stTable"] {{
+        background-color: {HIMAX_WHITE} !important;
+        color: {HIMAX_TEXT} !important;
+    }}
+    .stDataFrame td, .stDataFrame th {{
+        background-color: {HIMAX_WHITE} !important;
+        color: {HIMAX_TEXT} !important;
+    }}
+
+    /* Selectbox y multiselect */
+    div[data-baseweb="select"] > div {{
+        background-color: {HIMAX_WHITE} !important;
+        color: {HIMAX_TEXT} !important;
+    }}
+
+    /* Gráficos Plotly con fondo claro */
+    .js-plotly-plot .plotly {{
+        background-color: {HIMAX_WHITE} !important;
     }}
     </style>
     """,
@@ -141,7 +161,7 @@ elif opcion == "Agregar pendiente":
         sku = st.text_input("Código SKU (opcional)")
         cantidad = st.number_input("Cantidad", min_value=1, step=1)
         proveedor = st.text_input("Proveedor")
-        estado = "Pendiente"  # 🔹 Fijo
+        estado = "Pendiente"
         motivo = st.text_area("Motivo o comentario")
         vendedor = st.text_input("Vendedor")
 
@@ -185,6 +205,11 @@ elif opcion == "Dashboard":
             title="Cantidad total de productos pendientes por proveedor",
             color_discrete_sequence=[HIMAX_PRIMARY]
         )
+        fig1.update_layout(
+            plot_bgcolor=HIMAX_WHITE,
+            paper_bgcolor=HIMAX_WHITE,
+            font_color=HIMAX_DARK
+        )
         st.plotly_chart(fig1, use_container_width=True)
 
         st.divider()
@@ -197,7 +222,6 @@ elif opcion == "Dashboard":
 
         if not df_empresa.empty:
             st.write("### Productos pendientes para:", empresa_sel)
-
             tabla = df_empresa.groupby(["producto", "sku", "proveedor"])["cantidad"].sum().reset_index()
             st.dataframe(tabla, use_container_width=True)
 
@@ -209,6 +233,11 @@ elif opcion == "Dashboard":
                 text="cantidad",
                 title=f"Pendientes por producto - {empresa_sel}",
                 color_discrete_sequence=[HIMAX_PRIMARY, HIMAX_ACCENT, HIMAX_DARK]
+            )
+            fig2.update_layout(
+                plot_bgcolor=HIMAX_WHITE,
+                paper_bgcolor=HIMAX_WHITE,
+                font_color=HIMAX_DARK
             )
             st.plotly_chart(fig2, use_container_width=True)
         else:
