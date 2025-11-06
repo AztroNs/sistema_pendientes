@@ -1,1 +1,6 @@
 streamlit
+psycopg2-binary
+sqlalchemy
+bcrypt
+plotly
+pandas
