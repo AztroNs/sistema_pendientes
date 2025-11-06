@@ -16,19 +16,29 @@ HIMAX_PRIMARY = "#007BFF"      # Azul principal
 HIMAX_DARK = "#003366"         # Azul oscuro
 HIMAX_LIGHT = "#E6F0FA"        # Fondo claro
 HIMAX_ACCENT = "#00AEEF"       # Celeste vibrante
-HIMAX_GRAY = "#555555"         # Texto secundario
+HIMAX_GRAY = "#333333"         # Texto general oscuro
 
 # === ESTILO PERSONALIZADO ===
 st.markdown(
     f"""
     <style>
+    /* Fondo principal */
     .stApp {{
         background-color: {HIMAX_LIGHT};
     }}
-    h1, h2, h3, h4, h5, h6 {{
+
+    /* Títulos */
+    h1, h2, h3, h4, h5, h6, label {{
         color: {HIMAX_DARK} !important;
         font-family: 'Segoe UI', sans-serif;
     }}
+
+    /* Texto general */
+    p, span, div {{
+        color: {HIMAX_GRAY} !important;
+        font-family: 'Segoe UI', sans-serif;
+    }}
+
     /* Campos de texto */
     input, textarea, select {{
         color: {HIMAX_DARK} !important;
@@ -37,12 +47,13 @@ st.markdown(
         border: 1px solid #CCCCCC !important;
     }}
     input::placeholder, textarea::placeholder {{
-        color: #888 !important;
+        color: #777 !important;
     }}
     .stTextInput>div>div>input, .stNumberInput input, .stTextArea textarea {{
         color: {HIMAX_DARK} !important;
         background-color: white !important;
     }}
+
     /* Botones */
     .stButton>button {{
         background-color: {HIMAX_PRIMARY};
@@ -56,10 +67,18 @@ st.markdown(
         background-color: {HIMAX_ACCENT};
         color: white;
     }}
+
     /* Sidebar */
     section[data-testid="stSidebar"] {{
         background-color: white;
         border-right: 2px solid {HIMAX_ACCENT};
+    }}
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] label, 
+    section[data-testid="stSidebar"] div, 
+    section[data-testid="stSidebar"] span {{
+        color: {HIMAX_DARK} !important;
+        font-weight: 500;
     }}
     </style>
     """,
@@ -194,3 +213,4 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
