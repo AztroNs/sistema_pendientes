@@ -35,7 +35,7 @@ def obtener_pendientes():
 # -----------------------------------------------------
 # LOGIN CON UNA SOLA CONTRASEÑA GLOBAL
 # -----------------------------------------------------
-PASSWORD_GLOBAL = "Himax2025"  # 🔒 Cambia esta contraseña a la que quieras
+PASSWORD_GLOBAL = "Himax"  # 🔒 Cambia esta contraseña a la que quieras
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
@@ -125,3 +125,4 @@ if st.session_state.autenticado:
         st.session_state.autenticado = False
         st.success("Sesión cerrada correctamente.")
         st.rerun()
+
