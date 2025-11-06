@@ -7,7 +7,7 @@ import plotly.express as px
 st.set_page_config(
     page_title="Sistema de Pendientes - Himax",
     page_icon="💧",
-    layout="wide",  # 🔹 Amplía el contenido
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
@@ -16,6 +16,7 @@ HIMAX_PRIMARY = "#007BFF"      # Azul principal
 HIMAX_DARK = "#003366"         # Azul oscuro
 HIMAX_LIGHT = "#E6F0FA"        # Fondo claro
 HIMAX_ACCENT = "#00AEEF"       # Celeste vibrante
+HIMAX_GRAY = "#555555"         # Texto secundario
 
 # === ESTILO PERSONALIZADO ===
 st.markdown(
@@ -28,16 +29,37 @@ st.markdown(
         color: {HIMAX_DARK} !important;
         font-family: 'Segoe UI', sans-serif;
     }}
+    /* Campos de texto */
+    input, textarea, select {{
+        color: {HIMAX_DARK} !important;
+        background-color: white !important;
+        border-radius: 6px !important;
+        border: 1px solid #CCCCCC !important;
+    }}
+    input::placeholder, textarea::placeholder {{
+        color: #888 !important;
+    }}
+    .stTextInput>div>div>input, .stNumberInput input, .stTextArea textarea {{
+        color: {HIMAX_DARK} !important;
+        background-color: white !important;
+    }}
+    /* Botones */
     .stButton>button {{
         background-color: {HIMAX_PRIMARY};
         color: white;
         border-radius: 6px;
         height: 2.5em;
         font-weight: bold;
+        border: none;
     }}
     .stButton>button:hover {{
         background-color: {HIMAX_ACCENT};
         color: white;
+    }}
+    /* Sidebar */
+    section[data-testid="stSidebar"] {{
+        background-color: white;
+        border-right: 2px solid {HIMAX_ACCENT};
     }}
     </style>
     """,
