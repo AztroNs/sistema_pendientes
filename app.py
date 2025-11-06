@@ -80,17 +80,21 @@ st.markdown(
         font-weight: 500;
     }}
 
-    /* DataFrame (fondo blanco y texto oscuro) */
-    .stDataFrame div[data-testid="stTable"] {{
+    /* DataFrame (tabla fondo blanco) */
+    div[data-testid="stDataFrame"] div[role="gridcell"],
+    div[data-testid="stDataFrame"] div[role="columnheader"] {{
         background-color: {HIMAX_WHITE} !important;
         color: {HIMAX_TEXT} !important;
-    }}
-    .stDataFrame td, .stDataFrame th {{
-        background-color: {HIMAX_WHITE} !important;
-        color: {HIMAX_TEXT} !important;
+        border-color: #ddd !important;
     }}
 
-    /* Selectbox y multiselect */
+    /* Cabecera de tabla */
+    div[data-testid="stDataFrame"] div[role="columnheader"] {{
+        font-weight: bold !important;
+        background-color: #f4f6f9 !important;
+    }}
+
+    /* Selectbox */
     div[data-baseweb="select"] > div {{
         background-color: {HIMAX_WHITE} !important;
         color: {HIMAX_TEXT} !important;
@@ -242,4 +246,3 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
-
