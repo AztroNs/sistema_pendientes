@@ -115,7 +115,7 @@ st.markdown(
         color: #222 !important;
     }}
     div[data-baseweb="option"]:hover {{
-        background-color: #E6F0FA !important;  /* tono celeste Himax */
+        background-color: #E6F0FA !important;
         color: #003366 !important;
     }}
 
@@ -124,26 +124,25 @@ st.markdown(
         background-color: {HIMAX_WHITE} !important;
     }}
 
-    /* Asegurar que TODOS los dataframes (incluidos los del dashboard) sean blancos */
-    div[data-testid="stTable"] table {
+    /* Asegurar que TODAS las tablas (incluidas del dashboard) sean blancas */
+    div[data-testid="stTable"] table {{
         background-color: white !important;
         color: #222 !important;
         border-collapse: collapse !important;
-}
+    }}
 
-    div[data-testid="stTable"] th {
+    div[data-testid="stTable"] th {{
         background-color: #f4f6f9 !important;
         color: #003366 !important;
         font-weight: bold !important;
         border-bottom: 1px solid #ccc !important;
-}
+    }}
 
-    div[data-testid="stTable"] td {
+    div[data-testid="stTable"] td {{
         background-color: white !important;
         color: #222 !important;
         border-top: 1px solid #eee !important;
-}
-
+    }}
     </style>
     """,
     unsafe_allow_html=True
@@ -265,7 +264,7 @@ elif opcion == "Dashboard":
         df_empresa = df[df["empresa"] == empresa_sel]
 
         if not df_empresa.empty:
-            st.write("### Productos pendientes para:", empresa_sel)
+            st.write(f"### Productos pendientes para: {empresa_sel}")
             tabla = df_empresa.groupby(["producto", "sku", "proveedor"])["cantidad"].sum().reset_index()
             st.dataframe(tabla, use_container_width=True)
 
@@ -286,6 +285,3 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
-
-
-
