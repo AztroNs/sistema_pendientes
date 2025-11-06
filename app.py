@@ -199,7 +199,21 @@ elif opcion == "Agregar pendiente":
     st.title("➕ Agregar nuevo pendiente")
 
     with st.form("form_pendiente"):
-        empresa = st.text_input("Empresa (cliente)")
+        col1, col2 = st.columns(2)
+        with col1:
+            empresa = st.text_input("Empresa (cliente)")
+            rut_empresa = st.text_input("RUT de la empresa")
+            fecha_nota_venta = st.date_input("Fecha de Nota de Venta")
+        with col2:
+            n_nota_venta = st.text_input("N° Nota de Venta")
+            tipo_facturacion = st.selectbox(
+                "Tipo de Facturación",
+                ["Parcializada c/ constancia", "Completa"]
+            )
+            orden_compra = st.text_input("Número de Orden de Compra")
+
+        st.divider()
+
         producto = st.text_input("Producto")
         sku = st.text_input("Código SKU (opcional)")
         cantidad = st.number_input("Cantidad", min_value=1, step=1)
@@ -213,10 +227,19 @@ elif opcion == "Agregar pendiente":
         if enviado:
             with engine.begin() as conn:
                 conn.execute(text("""
-                    INSERT INTO pendientes (empresa, producto, cantidad, proveedor, estado, motivo, vendedor, sku)
-                    VALUES (:empresa, :producto, :cantidad, :proveedor, :estado, :motivo, :vendedor, :sku)
+                    INSERT INTO pendientes 
+                    (empresa, rut_empresa, fecha_nota_venta, n_nota_venta, tipo_facturacion, orden_compra,
+                     producto, cantidad, proveedor, estado, motivo, vendedor, sku)
+                    VALUES 
+                    (:empresa, :rut_empresa, :fecha_nota_venta, :n_nota_venta, :tipo_facturacion, :orden_compra,
+                     :producto, :cantidad, :proveedor, :estado, :motivo, :vendedor, :sku)
                 """), {
                     "empresa": empresa,
+                    "rut_empresa": rut_empresa,
+                    "fecha_nota_venta": fecha_nota_venta,
+                    "n_nota_venta": n_nota_venta,
+                    "tipo_facturacion": tipo_facturacion,
+                    "orden_compra": orden_compra,
                     "producto": producto,
                     "cantidad": cantidad,
                     "proveedor": proveedor,
@@ -285,3 +308,4 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
+
