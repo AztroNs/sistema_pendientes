@@ -100,40 +100,36 @@ st.markdown(
         color: {HIMAX_TEXT} !important;
     }}
 
-    /* Gráficos Plotly con fondo claro */
+    /* --- FIX: menú desplegable oscuro --- */
+    div[data-baseweb="popover"] {{
+        background-color: white !important;
+        color: #222 !important;
+        border: 1px solid #ccc !important;
+    }}
+    div[data-baseweb="popover"] div {{
+        background-color: white !important;
+        color: #222 !important;
+    }}
+    div[data-baseweb="option"] {{
+        background-color: white !important;
+        color: #222 !important;
+    }}
+    div[data-baseweb="option"]:hover {{
+        background-color: #E6F0FA !important;  /* tono celeste Himax */
+        color: #003366 !important;
+    }}
+
+    /* Gráficos Plotly */
     .js-plotly-plot .plotly {{
         background-color: {HIMAX_WHITE} !important;
     }}
-
-    /* Arreglar menú desplegable (selectbox) oscuro */
-div[data-baseweb="popover"] {
-    background-color: white !important;
-    color: #222 !important;
-    border: 1px solid #ccc !important;
-}
-
-div[data-baseweb="popover"] div {
-    background-color: white !important;
-    color: #222 !important;
-}
-
-div[data-baseweb="option"] {
-    background-color: white !important;
-    color: #222 !important;
-}
-
-div[data-baseweb="option"]:hover {
-    background-color: #E6F0FA !important;  /* tono celeste Himax */
-    color: #003366 !important;
-}
-
     </style>
     """,
     unsafe_allow_html=True
 )
 
 # === LOGIN SIMPLE ===
-APP_PASSWORD = "Himax"
+APP_PASSWORD = "Familia2025"
 DB_URL = "postgresql+psycopg2://neondb_owner:npg_XU4IAbaent7p@ep-twilight-credit-acc6aiu0-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 engine = create_engine(DB_URL)
 
@@ -269,6 +265,3 @@ elif opcion == "Dashboard":
             st.plotly_chart(fig2, use_container_width=True)
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
-
-
-
