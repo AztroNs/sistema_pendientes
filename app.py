@@ -204,6 +204,7 @@ if opcion == "Lista de pendientes":
             "orden_compra",
             "fecha_nota_venta",
             "n_nota_venta",
+            "fecha_entrega",
             "estado",
             "motivo",
             "vendedor",
@@ -229,11 +230,12 @@ if opcion == "Lista de pendientes":
             "estado": "Estado",
             "motivo": "Motivo o Comentario",
             "vendedor": "Vendedor",
-            "fecha_creacion": "Fecha Creación"
+            "fecha_creacion": "Fecha Creación",
+            "fecha_entrega": "Fecha de Entrega"
+
         })
 
         st.dataframe(df, use_container_width=True, hide_index=True)
-
 
 # === AGREGAR PENDIENTE ===
 elif opcion == "Agregar pendiente":
@@ -245,6 +247,7 @@ elif opcion == "Agregar pendiente":
             empresa = st.text_input("Empresa (cliente)")
             rut_empresa = st.text_input("RUT de la empresa")
             fecha_nota_venta = st.date_input("Fecha de Nota de Venta")
+            fecha_entrega = st.date_input("Fecha de Entrega (opcional)", value=None)
         with col2:
             n_nota_venta = st.text_input("N° Nota de Venta")
             tipo_facturacion = st.selectbox(
@@ -269,15 +272,16 @@ elif opcion == "Agregar pendiente":
             with engine.begin() as conn:
                 conn.execute(text("""
                     INSERT INTO pendientes 
-                    (empresa, rut_empresa, fecha_nota_venta, n_nota_venta, tipo_facturacion, orden_compra,
+                    (empresa, rut_empresa, fecha_nota_venta, fecha_entrega, n_nota_venta, tipo_facturacion, orden_compra,
                      producto, cantidad, proveedor, estado, motivo, vendedor, sku)
                     VALUES 
-                    (:empresa, :rut_empresa, :fecha_nota_venta, :n_nota_venta, :tipo_facturacion, :orden_compra,
+                    (:empresa, :rut_empresa, :fecha_nota_venta, :fecha_entrega, :n_nota_venta, :tipo_facturacion, :orden_compra,
                      :producto, :cantidad, :proveedor, :estado, :motivo, :vendedor, :sku)
                 """), {
                     "empresa": empresa,
                     "rut_empresa": rut_empresa,
                     "fecha_nota_venta": fecha_nota_venta,
+                    "fecha_entrega": fecha_entrega,
                     "n_nota_venta": n_nota_venta,
                     "tipo_facturacion": tipo_facturacion,
                     "orden_compra": orden_compra,
@@ -290,6 +294,7 @@ elif opcion == "Agregar pendiente":
                     "sku": sku
                 })
             st.success("✅ Pendiente agregado exitosamente.")
+
 
 # === DASHBOARD ===
 elif opcion == "Dashboard":
@@ -585,6 +590,7 @@ elif opcion == "Entregas Completadas":
         })
 
         st.dataframe(df_filtrado, use_container_width=True, hide_index=True)
+
 
 
 
