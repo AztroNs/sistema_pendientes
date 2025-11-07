@@ -174,7 +174,7 @@ st.sidebar.image("Logotipo Himax COLOR.png", width=180)
 st.sidebar.title("Menú")
 opcion = st.sidebar.radio(
     "Selecciona una opción:",
-    ["Lista de pendientes", "Agregar pendiente", "Dashboard", "Qué comprar", "Eliminar de pendientes"]
+    ["Lista de pendientes", "Agregar pendiente", "Dashboard", "Qué comprar", "Eliminar de pendientes", "Entregas Completadas"]
 )
 
 # === FUNCIONES ===
@@ -506,12 +506,85 @@ elif opcion == "Eliminar de pendientes":
             confirmar = st.checkbox("Confirmo que deseo eliminar este pendiente definitivamente")
 
             if confirmar:
+                # Antes de eliminar, mover a la tabla de entregas_completadas
                 with engine.begin() as conn:
-                    conn.execute(text("DELETE FROM pendientes WHERE id=:id"), {"id": id_sel})
-                st.success("🗑️ Pendiente eliminado exitosamente.")
+                    # Obtener el pendiente completo
+                    pendiente = conn.execute(
+                        text("SELECT * FROM pendientes WHERE id = :id"),
+                        {"id": id_sel}
+                    ).mappings().first()
+
+                    if pendiente:
+                        # Insertar en tabla de entregas completadas
+                        conn.execute(text("""
+                            INSERT INTO entregas_completadas
+                            (empresa, rut_empresa, producto, sku, cantidad, proveedor, tipo_facturacion,
+                             orden_compra, fecha_nota_venta, n_nota_venta, estado, motivo, vendedor, fecha_creacion)
+                            VALUES
+                            (:empresa, :rut_empresa, :producto, :sku, :cantidad, :proveedor, :tipo_facturacion,
+                             :orden_compra, :fecha_nota_venta, :n_nota_venta, :estado, :motivo, :vendedor, :fecha_creacion)
+                        """), pendiente)
+
+                        # Ahora sí, eliminarlo de pendientes
+                        conn.execute(text("DELETE FROM pendientes WHERE id = :id"), {"id": id_sel})
+
+                st.success("✅ Pendiente eliminado y movido a 'Entregas Completadas'.")
                 st.rerun()
+
             else:
                 st.info("El pendiente no ha sido eliminado. Marca la casilla para confirmar.")
+
+# === ENTREGAS COMPLETADAS ===
+elif opcion == "Entregas completadas":
+    st.title("📦 Entregas Completadas - Historial de productos entregados")
+
+    with engine.begin() as conn:
+        df = pd.read_sql("SELECT * FROM entregas_completadas ORDER BY fecha_entrega DESC", conn)
+
+    if df.empty:
+        st.info("Aún no hay entregas completadas registradas.")
+    else:
+        st.subheader("Historial de entregas registradas")
+
+        # Opcional: filtros de búsqueda
+        col1, col2 = st.columns(2)
+        with col1:
+            filtro_empresa = st.text_input("Buscar por empresa")
+        with col2:
+            filtro_proveedor = st.text_input("Buscar por proveedor")
+
+        df_filtrado = df.copy()
+        if filtro_empresa:
+            df_filtrado = df_filtrado[df_filtrado["empresa"].str.contains(filtro_empresa, case=False, na=False)]
+        if filtro_proveedor:
+            df_filtrado = df_filtrado[df_filtrado["proveedor"].str.contains(filtro_proveedor, case=False, na=False)]
+
+        # Reordenar columnas y mostrar
+        columnas = [
+            "empresa", "rut_empresa", "producto", "sku", "cantidad", "proveedor",
+            "tipo_facturacion", "orden_compra", "fecha_nota_venta", "n_nota_venta",
+            "motivo", "vendedor", "fecha_entrega"
+        ]
+        df_filtrado = df_filtrado[[c for c in columnas if c in df_filtrado.columns]]
+
+        # Renombrar para visualización
+        df_filtrado = df_filtrado.rename(columns={
+            "empresa": "Empresa",
+            "rut_empresa": "RUT Empresa",
+            "producto": "Producto",
+            "sku": "SKU",
+            "cantidad": "Cantidad",
+            "proveedor": "Proveedor",
+            "tipo_facturacion": "Tipo de Facturación",
+            "orden_compra": "Orden de Compra",
+            "fecha_nota_venta": "Fecha Nota Venta",
+            "n_nota_venta": "N° Nota Venta",
+            "motivo": "Motivo o Comentario",
+            "vendedor": "Vendedor",
+            "fecha_entrega": "Fecha Entrega"
+        })
+
+        st.dataframe(df_filtrado, use_container_width=True, hide_index=True)
 
 
 
