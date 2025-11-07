@@ -535,7 +535,7 @@ elif opcion == "Eliminar de pendientes":
                 st.info("El pendiente no ha sido eliminado. Marca la casilla para confirmar.")
 
 # === ENTREGAS COMPLETADAS ===
-elif opcion == "Entregas completadas":
+elif opcion == "Entregas Completadas":
     st.title("📦 Entregas Completadas - Historial de productos entregados")
 
     with engine.begin() as conn:
@@ -585,6 +585,7 @@ elif opcion == "Entregas completadas":
         })
 
         st.dataframe(df_filtrado, use_container_width=True, hide_index=True)
+
 
 
 
