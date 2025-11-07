@@ -149,7 +149,7 @@ st.markdown(
 )
 
 # === LOGIN SIMPLE ===
-APP_PASSWORD = "Familia2025"
+APP_PASSWORD = "Himax"
 DB_URL = "postgresql+psycopg2://neondb_owner:npg_XU4IAbaent7p@ep-twilight-credit-acc6aiu0-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 engine = create_engine(DB_URL)
 
@@ -174,7 +174,7 @@ st.sidebar.image("Logotipo Himax COLOR.png", width=180)
 st.sidebar.title("Menú")
 opcion = st.sidebar.radio(
     "Selecciona una opción:",
-    ["Lista de pendientes", "Agregar pendiente", "Dashboard", "Eliminar de pendientes"]
+    ["Lista de pendientes", "Agregar pendiente", "Dashboard", "Qué comprar", "Eliminar de pendientes"]
 )
 
 # === FUNCIONES ===
@@ -350,6 +350,62 @@ elif opcion == "Dashboard":
         else:
             st.warning("Esta empresa no tiene productos pendientes.")
 
+# === SECCIÓN DE COMPRAS / QUÉ COMPRAR ===
+elif opcion == "Qué comprar":
+    st.title("🛒 Sección de Compras - Qué productos hay que comprar")
+
+    with engine.begin() as conn:
+        df = pd.read_sql("SELECT * FROM pendientes", conn)
+
+    if df.empty:
+        st.info("No hay productos pendientes actualmente.")
+    else:
+        # --- FILTROS ---
+        st.subheader("🔍 Filtros de búsqueda")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            empresas = sorted(df["empresa"].dropna().unique())
+            empresa_sel = st.selectbox("Filtrar por empresa (opcional)", ["Todas"] + empresas)
+        with col2:
+            proveedores = sorted(df["proveedor"].dropna().unique())
+            proveedor_sel = st.selectbox("Filtrar por proveedor", ["Todos"] + proveedores)
+
+        # --- APLICAR FILTROS ---
+        df_filtrado = df.copy()
+
+        if empresa_sel != "Todas":
+            df_filtrado = df_filtrado[df_filtrado["empresa"] == empresa_sel]
+
+        if proveedor_sel != "Todos":
+            df_filtrado = df_filtrado[df_filtrado["proveedor"] == proveedor_sel]
+
+        st.divider()
+
+        if df_filtrado.empty:
+            st.warning("No hay pendientes que coincidan con los filtros seleccionados.")
+        else:
+            st.subheader("📦 Productos pendientes de compra")
+            tabla = df_filtrado.groupby(
+                ["proveedor", "producto", "sku"]
+            )["cantidad"].sum().reset_index()
+
+            # Mostramos resumen en tabla
+            st.dataframe(tabla, use_container_width=True)
+
+            # Gráfico visual
+            import plotly.express as px
+            fig = px.bar(
+                tabla,
+                x="producto",
+                y="cantidad",
+                color="proveedor",
+                text="cantidad",
+                title="Productos pendientes por proveedor",
+                labels={"cantidad": "Unidades", "producto": "Producto"},
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
 # === ELIMINAR O EDITAR PENDIENTES ===
 elif opcion == "Eliminar de pendientes":
     st.title("🗑️ Eliminar o Editar Pendientes Existentes")
@@ -456,6 +512,7 @@ elif opcion == "Eliminar de pendientes":
                 st.rerun()
             else:
                 st.info("El pendiente no ha sido eliminado. Marca la casilla para confirmar.")
+
 
 
 
