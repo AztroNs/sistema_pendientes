@@ -211,19 +211,18 @@ if opcion == "Lista de pendientes":
             df["fecha_creacion"] = pd.to_datetime(df["fecha_creacion"])
             df["dias_pendiente"] = (hoy - df["fecha_creacion"]).dt.days
 
-            # Filtrar los que llevan 7 días o más y siguen en estado Pendiente
-            if "estado" in df.columns:
-                df_atrasados = df[
-                    (df["dias_pendiente"] >= 7) &
-                    (df["estado"].astype(str).str.lower() == "pendiente")
-                ]
+            # Pendientes de +7 días
+            df_atrasados = df[
+                (df["dias_pendiente"] >= 7) &
+                (df["estado"].astype(str).str.lower() == "pendiente")
+            ]
 
-                if not df_atrasados.empty:
-                    st.warning(
-                        f"⚠️ Hay {len(df_atrasados)} pendientes con más de 7 días sin completar."
-                    )
+            if not df_atrasados.empty:
+                st.warning(
+                    f"⚠️ Hay {len(df_atrasados)} pendientes con más de 7 días sin completar."
+                )
 
-        # === TABLA GENERAL DE PENDIENTES (ÚNICA TABLA) ===
+        # === TABLA PRINCIPAL ===
         columnas_mostrar = [
             "empresa",
             "rut_empresa",
@@ -240,7 +239,7 @@ if opcion == "Lista de pendientes":
             "motivo",
             "vendedor",
             "fecha_creacion",
-            "dias_pendiente",   # 👈 seguimos mostrando los días
+            "dias_pendiente"
         ]
 
         columnas_existentes = [c for c in columnas_mostrar if c in df.columns]
@@ -267,53 +266,6 @@ if opcion == "Lista de pendientes":
 
         st.dataframe(df, use_container_width=True, hide_index=True)
 
-
-        # === TABLA GENERAL DE PENDIENTES ===
-
-        columnas_mostrar = [
-            "empresa",
-            "rut_empresa",
-            "producto",
-            "sku",
-            "cantidad",
-            "proveedor",
-            "tipo_facturacion",
-            "orden_compra",
-            "fecha_nota_venta",
-            "n_nota_venta",
-            "fecha_entrega",
-            "estado",
-            "motivo",
-            "vendedor",
-            "fecha_creacion",
-            "dias_pendiente",   # 👈 agregamos esta columna
-        ]
-
-        # Filtra columnas que existan (por compatibilidad con datos antiguos)
-        columnas_existentes = [c for c in columnas_mostrar if c in df.columns]
-        df = df[columnas_existentes]
-
-        # Renombra columnas para visualización
-        df = df.rename(columns={
-            "empresa": "Empresa",
-            "rut_empresa": "RUT Empresa",
-            "producto": "Producto",
-            "sku": "SKU",
-            "cantidad": "Cantidad",
-            "proveedor": "Proveedor",
-            "tipo_facturacion": "Tipo de Facturación",
-            "orden_compra": "Orden de Compra",
-            "fecha_nota_venta": "Fecha Nota Venta",
-            "n_nota_venta": "N° Nota Venta",
-            "estado": "Estado",
-            "motivo": "Motivo o Comentario",
-            "vendedor": "Vendedor",
-            "fecha_creacion": "Fecha Creación",
-            "fecha_entrega": "Fecha de Entrega",
-            "dias_pendiente": "Días en pendiente"
-        })
-
-        st.dataframe(df, use_container_width=True, hide_index=True)
 
 # === AGREGAR PENDIENTE ===
 elif opcion == "Agregar pendiente":
@@ -668,6 +620,7 @@ elif opcion == "Entregas Completadas":
         })
 
         st.dataframe(df_filtrado, use_container_width=True, hide_index=True)
+
 
 
 
