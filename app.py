@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from sqlalchemy import create_engine, text
 import plotly.express as px
+import os
+from dotenv import load_dotenv  # si ya lo tenías, lo dejamos
 
 # === CONFIGURACIÓN GENERAL ===
 st.set_page_config(
@@ -149,8 +151,13 @@ st.markdown(
 )
 
 # === LOGIN SIMPLE ===
-APP_PASSWORD = "Himax"
-DB_URL = "postgresql+psycopg2://neondb_owner:npg_XU4IAbaent7p@ep-twilight-credit-acc6aiu0-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+APP_PASSWORD = st.secrets.get("APP_PASSWORD", os.getenv("APP_PASSWORD"))
+DB_URL = st.secrets.get("NEON_DB_URL", os.getenv("NEON_DB_URL"))
+
+if not DB_URL:
+    st.error("❌ No se encontró NEON_DB_URL. Revisa los Secrets de Streamlit o tu archivo .env.")
+    st.stop()
+
 engine = create_engine(DB_URL)
 
 if "authenticated" not in st.session_state:
@@ -590,6 +597,7 @@ elif opcion == "Entregas Completadas":
         })
 
         st.dataframe(df_filtrado, use_container_width=True, hide_index=True)
+
 
 
 
